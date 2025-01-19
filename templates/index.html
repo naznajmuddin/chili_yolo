@@ -18,7 +18,7 @@
           <h2>Image Validation Mode</h2>
           <form action="/upload" method="post" enctype="multipart/form-data" target="_blank">
             <input type="file" name="image" accept="image/*" />
-            <button type="submit">UPLOAD</button>
+            <button type="submit">UPLOAD & ANALYSE</button>
           </form>
           <button onclick="window.location.reload()">RESET</button>
           <h2>Video Deployment Mode</h2>
@@ -26,23 +26,35 @@
         </div>
 
         <div class="dashboard">
-          <h2 style="text-align: center;">Dashboard</h2>
+          <div class="dashboard-header">
+            <h2>Dashboard</h2>
+            <span id="clock"></span>
+          </div>
           <div class="stats">
+            <div>
+              <h3 id="healthyCount"></h3>
+              <p>Healthy Plants Detected</p>
+            </div>
+            <div>
+              <h3 id="yellowishCount"></h3>
+              <p>Yellowish Plants Detected</p>
+            </div>
+            <div>
+              <h3 id="overallHealth"></h3>
+              <p>Overall Health</p>
+            </div>
+            <div>
+              <canvas id="yellowishChart" width="150" height="150"></canvas>
+              <p id="yellowishPercentageText" style="text-align: center; font-weight: bold; margin-top: 10px;"></p>
+              <p>Current Health Status</p>
+            </div>
             <div>
               <h3 id="currentScreenPlant"></h3>
               <p>Current Screen Plant</p>
             </div>
             <div>
-              <canvas id="currentHealthChart"></canvas>
-              <p>Current Health Status</p>
-            </div>
-            <div>
               <h3 id="totalScreenPlant"></h3>
               <p>Total Screen Plant</p>
-            </div>
-            <div>
-              <canvas id="totalHealthChart"></canvas>
-              <p>Total Health Status</p>
             </div>
           </div>
           <div class="buttons">
@@ -59,23 +71,92 @@
       }
     </script>
     <script>
+      let yellowishChart
+      
+      // Function to initialize the Yellowish Percentage chart
+      function initializeYellowishChart() {
+        const ctx = document.getElementById('yellowishChart').getContext('2d')
+      
+        yellowishChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Yellowish', 'Healthy'],
+            datasets: [
+              {
+                label: 'Yellowish Percentage',
+                data: [0, 100], // Default initial values
+                backgroundColor: ['#FFD700', '#00FF00'], // Yellow and Green
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            cutout: '70%', // Creates the donut effect
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom'
+              }
+            }
+          }
+        })
+      }
+      
+      // Function to update the Yellowish Chart and Percentage Text
+      function updateYellowishChart(yellowishPercentage) {
+        if (yellowishChart) {
+          // Update chart data
+          yellowishChart.data.datasets[0].data = [yellowishPercentage, 100 - yellowishPercentage]
+          yellowishChart.update()
+      
+          // Update the Yellowish Percentage text
+          const percentageText = `${yellowishPercentage.toFixed(1)}%`
+          document.getElementById('yellowishPercentageText').textContent = percentageText
+        }
+      }
+      
       // Fetch stats and update the dashboard
       async function updateStats() {
         try {
           const response = await fetch('/stats')
           const stats = await response.json()
       
-          // Update the stats dynamically
-          document.querySelector('#currentScreenPlant').textContent = stats.analyzed // Replace 15
-          document.querySelector('#totalScreenPlant').textContent = stats.uploaded // Replace 200
+          // Update other stats dynamically
+          document.querySelector('#healthyCount').textContent = stats.healthy
+          document.querySelector('#yellowishCount').textContent = stats.yellowish
+          document.querySelector('#overallHealth').textContent = stats.overall_health
+          document.querySelector('#currentScreenPlant').textContent = stats.analyzed
+          document.querySelector('#totalScreenPlant').textContent = stats.uploaded
+      
+          // Update the Yellowish Percentage chart and text
+          updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
         } catch (error) {
           console.error('Error fetching stats:', error)
         }
       }
       
-      // Call the function to update stats every 5 seconds
-      setInterval(updateStats, 5000)
-      updateStats() // Initial call to populate on page load
+      // Initialize everything on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeYellowishChart() // Initialize the donut chart
+        updateStats() // Initial stats update
+        setInterval(updateStats, 5000) // Periodically update stats
+      })
+    </script>
+
+    <script>
+      function updateClock() {
+        const clockElement = document.getElementById('clock')
+        const now = new Date()
+        const hours = String(now.getHours()).padStart(2, '0')
+        const minutes = String(now.getMinutes()).padStart(2, '0')
+        const seconds = String(now.getSeconds()).padStart(2, '0')
+        clockElement.textContent = `${hours}:${minutes}:${seconds}`
+      }
+      
+      // Update the clock every second
+      setInterval(updateClock, 1000)
+      updateClock() // Initial call to show the time immediately
     </script>
   </body>
 </html>

@@ -109,6 +109,9 @@ def analyse(filename):
 
     # Perform YOLO object detection
     results = model(image)
+    healthy_count = 0
+    yellowish_count = 0
+
     for result in results:
         boxes = result.boxes.xyxy  # x1, y1, x2, y2
         confidences = result.boxes.conf
@@ -116,6 +119,11 @@ def analyse(filename):
         for box, confidence, class_id in zip(boxes, confidences, class_ids):
             x1, y1, x2, y2 = map(int, box)
             class_name = model.names[int(class_id)]  # Get the class name
+            if class_name == "Healthy":
+                healthy_count += 1
+            elif class_name == "Yellowish":
+                yellowish_count += 1
+
             color = CLASS_COLORS.get(
                 class_name, (255, 255, 255)
             )  # Default to white if class not in map
@@ -125,14 +133,128 @@ def analyse(filename):
                 image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 5
             )
 
-    # Increment the analysis counter here
+    # Increment the analysis counter
     increment_counter("analysis")
+
+    # Calculate the percentage of Yellowish
+    total_count = healthy_count + yellowish_count
+    yellowish_percentage = (
+        (yellowish_count / total_count) * 100 if total_count > 0 else 0
+    )
+
+    # Determine overall health
+    overall_health = "Healthy" if yellowish_percentage <= 5 else "Unhealthy"
+
+    # Get the image dimensions
+    height, width, _ = image.shape
+
+    # Text to display
+    healthy_text = f"Healthy: {healthy_count}"
+    yellowish_text = f"Yellowish: {yellowish_count}"
+    overall_health_text = f"Overall: {overall_health} ({yellowish_percentage:.1f}%)"
+
+    # Font and scale settings
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5
+    thickness = 5
+
+    # Calculate text positions for Healthy and Yellowish
+    healthy_size = cv2.getTextSize(healthy_text, font, font_scale, thickness)[0]
+    healthy_x = (width - healthy_size[0]) // 2
+    healthy_y = height // 2 - 90
+
+    yellowish_size = cv2.getTextSize(yellowish_text, font, font_scale, thickness)[0]
+    yellowish_x = (width - yellowish_size[0]) // 2
+    yellowish_y = height // 2 - 30
+
+    # Calculate text position for Overall Health
+    overall_health_size = cv2.getTextSize(
+        overall_health_text, font, font_scale, thickness
+    )[0]
+    overall_health_x = (width - overall_health_size[0]) // 2
+    overall_health_y = height // 2 + 60
+
+    # Background rectangle dimensions for Healthy
+    healthy_bg_x1 = healthy_x - 10
+    healthy_bg_y1 = healthy_y - healthy_size[1] - 10
+    healthy_bg_x2 = healthy_x + healthy_size[0] + 10
+    healthy_bg_y2 = healthy_y + 10
+
+    # Background rectangle dimensions for Yellowish
+    yellowish_bg_x1 = yellowish_x - 10
+    yellowish_bg_y1 = yellowish_y - yellowish_size[1] - 10
+    yellowish_bg_x2 = yellowish_x + yellowish_size[0] + 10
+    yellowish_bg_y2 = yellowish_y + 10
+
+    # Background rectangle dimensions for Overall Health
+    overall_health_bg_x1 = overall_health_x - 10
+    overall_health_bg_y1 = overall_health_y - overall_health_size[1] - 10
+    overall_health_bg_x2 = overall_health_x + overall_health_size[0] + 10
+    overall_health_bg_y2 = overall_health_y + 10
+
+    # Draw rectangles with a solid color (e.g., black)
+    cv2.rectangle(
+        image,
+        (healthy_bg_x1, healthy_bg_y1),
+        (healthy_bg_x2, healthy_bg_y2),
+        (0, 0, 0),
+        -1,
+    )
+    cv2.rectangle(
+        image,
+        (yellowish_bg_x1, yellowish_bg_y1),
+        (yellowish_bg_x2, yellowish_bg_y2),
+        (0, 0, 0),
+        -1,
+    )
+    cv2.rectangle(
+        image,
+        (overall_health_bg_x1, overall_health_bg_y1),
+        (overall_health_bg_x2, overall_health_bg_y2),
+        (0, 0, 0),
+        -1,
+    )
+
+    # Draw the text on top of the rectangles
+    cv2.putText(
+        image,
+        healthy_text,
+        (healthy_x, healthy_y),
+        font,
+        font_scale,
+        (255, 255, 255),
+        thickness,
+    )
+    cv2.putText(
+        image,
+        yellowish_text,
+        (yellowish_x, yellowish_y),
+        font,
+        font_scale,
+        (255, 255, 255),
+        thickness,
+    )
+    cv2.putText(
+        image,
+        overall_health_text,
+        (overall_health_x, overall_health_y),
+        font,
+        font_scale,
+        (255, 255, 255),
+        thickness,
+    )
 
     # Save the annotated image
     annotated_path = os.path.join(app.config["UPLOAD_FOLDER"], f"annotated_{filename}")
     cv2.imwrite(annotated_path, image)
 
-    # Redirect directly to the image
+    # Store counts and health in the session
+    session["healthy_count"] = healthy_count
+    session["yellowish_count"] = yellowish_count
+    session["overall_health"] = overall_health
+    session["yellowish_percentage"] = yellowish_percentage
+
+    # Redirect to the annotated image
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
 
@@ -164,6 +286,10 @@ def get_counters():
     return {
         "uploaded": session.get("upload_count", 0),
         "analyzed": session.get("analysis_count", 0),
+        "healthy": session.get("healthy_count", 0),
+        "yellowish": session.get("yellowish_count", 0),
+        "overall_health": session.get("overall_health", "Unknown"),
+        "yellowish_percentage": session.get("yellowish_percentage", 0),
     }
 
 

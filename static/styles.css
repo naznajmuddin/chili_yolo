@@ -105,3 +105,43 @@ canvas {
     border-radius: 4px;
     cursor: pointer;
 }
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    /* Vertically align items */
+    justify-content: center;
+    /* Center items horizontally */
+    gap: 15px;
+    /* Space between Dashboard and clock */
+    margin-bottom: 20px;
+    /* Add spacing below the header */
+    font-size: 1.5rem;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+    /* Remove default margin for consistent alignment */
+    color: #000;
+    /* Match the red color of stats */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    /* Slight shadow for style */
+}
+
+#clock {
+    font-size: 1.2rem;
+    /* Slightly smaller than Dashboard text */
+    padding: 5px 10px;
+    /* Add padding for a rounded look */
+    background-color: rgba(34, 34, 34, 0.9);
+    /* Semi-transparent dark background */
+    color: #fff;
+    /* White text for contrast */
+    border-radius: 8px;
+    /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for elevation */
+    text-align: center;
+    min-width: 100px;
+    /* Ensure consistent size */
+}
