@@ -3,3 +3,10 @@ opencv-python
 numpy
 torch
 ultralytics
+blinker
+click
+colorama
+itsdangerous
+Jinja2
+MarkupSafe
+Werkzeug
