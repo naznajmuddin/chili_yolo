@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chili Plant Health Screening System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>CHILI PLANT HEALTH SCREENING SYSTEM</h1>
+      </header>
+
+      <div class="main-content">
+        <div class="left-panel">
+          <h2>Image Validation Mode</h2>
+          <form action="/upload" method="post" enctype="multipart/form-data" target="_blank">
+            <input type="file" name="image" accept="image/*" />
+            <button type="submit">UPLOAD</button>
+          </form>
+          <button onclick="window.location.reload()">RESET</button>
+          <h2>Video Deployment Mode</h2>
+          <button onclick="openCamera()">OPEN CAMERA</button>
+        </div>
+
+        <div class="dashboard">
+          <h2>Dash Board</h2>
+          <div class="stats">
+            <div>
+              <h3>15</h3>
+              <p>Current Screen Plant</p>
+            </div>
+            <div>
+              <canvas id="currentHealthChart"></canvas>
+              <p>Current Health Status</p>
+            </div>
+            <div>
+              <h3>200</h3>
+              <p>Total Screen Plant</p>
+            </div>
+            <div>
+              <canvas id="totalHealthChart"></canvas>
+              <p>Total Health Status</p>
+            </div>
+          </div>
+          <div class="buttons">
+            <button>PRINT CURRENT RESULT</button>
+            <button>PRINT OVERALL RESULT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openCamera() {
+        window.open('/video_feed', '_blank')
+      }
+    </script>
+  </body>
+</html>
