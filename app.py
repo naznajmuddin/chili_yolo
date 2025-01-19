@@ -8,7 +8,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'  # Directory to store uploaded images
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Load the YOLO model
-model = YOLO('yolov8n.pt')  # Replace 'yolov8n.pt' with your model if different
+model = YOLO('best.pt')  # Replace 'yolov8n.pt' with your model if different
 
 @app.route('/')
 def index():
@@ -33,7 +33,7 @@ def video_feed():
                         x1, y1, x2, y2 = map(int, box)
                         label = f"{model.names[int(class_id)]} {confidence:.2f}"
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                        cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                        cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5)
 
                 ret, buffer = cv2.imencode('.jpg', frame)
                 frame = buffer.tobytes()
@@ -69,7 +69,7 @@ def analyse(filename):
             x1, y1, x2, y2 = map(int, box)
             label = f"{model.names[int(class_id)]} {confidence:.2f}"
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 5)
 
     # Save the annotated image
     annotated_path = os.path.join(app.config['UPLOAD_FOLDER'], f'annotated_{filename}')
