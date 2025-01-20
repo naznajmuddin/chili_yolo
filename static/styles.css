@@ -74,13 +74,31 @@ header h1 {
 
 .stats {
     display: flex;
+    flex-wrap: wrap;
+    /* Allow items to wrap onto the next row */
     justify-content: space-around;
+    /* Space out the items evenly */
+    gap: 20px;
+    /* Add some spacing between items */
     margin: 20px 0;
 }
 
 .stats div {
+    flex: 1 1 calc(25% - 20px);
+    /* Make each item take up 25% of the row minus the gap */
     text-align: center;
+    min-width: 150px;
+    /* Ensure a minimum width for smaller screens */
 }
+
+/* Adjust layout for smaller screens */
+@media (max-width: 768px) {
+    .stats div {
+        flex: 1 1 100%;
+        /* Stack items on smaller screens */
+    }
+}
+
 
 .stats h3 {
     font-size: 2rem;

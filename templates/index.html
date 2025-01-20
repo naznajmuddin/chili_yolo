@@ -31,6 +31,7 @@
             <span id="clock"></span>
           </div>
           <div class="stats">
+            <!-- First row items -->
             <div>
               <h3 id="healthyCount"></h3>
               <p>Healthy Plants Detected</p>
@@ -44,13 +45,15 @@
               <p>Plant Health Condition</p>
             </div>
             <div>
-              <canvas id="yellowishChart" width="150" height="150"></canvas>
-              <p id="yellowishPercentageText" style="text-align: center; font-weight: bold; margin-top: 10px;"></p>
+              <canvas id="yellowishChart"></canvas>
+              <p id="yellowishPercentageText"></p>
               <p>Current Health Status</p>
             </div>
+
+            <!-- Second row items -->
             <div>
-              <canvas id="totalYellowishChart" width="150" height="150"></canvas>
-              <p id="totalYellowishPercentageText" style="text-align: center; font-weight: bold; margin-top: 10px;"></p>
+              <canvas id="totalYellowishChart"></canvas>
+              <p id="totalYellowishPercentageText"></p>
               <p>Total Health Status</p>
             </div>
             <div>
@@ -62,6 +65,7 @@
               <p>Total Screen Plant</p>
             </div>
           </div>
+
           <div class="buttons">
             <button onclick="openCurrentResultModal()">DISPLAY CURRENT RESULT</button>
             <button>DISPLAY OVERALL RESULT</button>
