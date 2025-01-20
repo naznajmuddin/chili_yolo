@@ -1,22 +1,15 @@
-/* Set the background image for the entire page */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-image: url('/static/chili_wallpaper.jpg');
-    /* Path to your wallpaper image */
     background-size: cover;
-    /* Make the background cover the entire page */
     background-position: center;
-    /* Center the background image */
     background-repeat: no-repeat;
-    /* Prevent the background from repeating */
     background-attachment: fixed;
-    /* Keep the background fixed during scroll */
     height: 100vh;
 }
 
-/* Other content styling */
 header {
     text-align: center;
     color: #fff;
@@ -27,7 +20,6 @@ header h1 {
     margin: 0;
     font-size: 2rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    /* Add a shadow for better text visibility */
 }
 
 .container {
@@ -46,7 +38,6 @@ header h1 {
 .left-panel {
     flex: 1;
     background-color: rgba(34, 34, 34, 0.8);
-    /* Semi-transparent background */
     color: #fff;
     padding: 20px;
     text-align: center;
@@ -65,7 +56,6 @@ header h1 {
 .dashboard {
     flex: 3;
     background-color: rgba(255, 255, 255, 0.9);
-    /* Semi-transparent background */
     padding: 20px;
     margin-left: 20px;
     border-radius: 8px;
@@ -75,30 +65,22 @@ header h1 {
 .stats {
     display: flex;
     flex-wrap: wrap;
-    /* Allow items to wrap onto the next row */
     justify-content: space-around;
-    /* Space out the items evenly */
     gap: 20px;
-    /* Add some spacing between items */
     margin: 20px 0;
 }
 
 .stats div {
     flex: 1 1 calc(25% - 20px);
-    /* Make each item take up 25% of the row minus the gap */
     text-align: center;
     min-width: 150px;
-    /* Ensure a minimum width for smaller screens */
 }
 
-/* Adjust layout for smaller screens */
 @media (max-width: 768px) {
     .stats div {
         flex: 1 1 100%;
-        /* Stack items on smaller screens */
     }
 }
-
 
 .stats h3 {
     font-size: 2rem;
@@ -127,46 +109,31 @@ canvas {
 .dashboard-header {
     display: flex;
     align-items: center;
-    /* Vertically align items */
     justify-content: center;
-    /* Center items horizontally */
     gap: 15px;
-    /* Space between Dashboard and clock */
     margin-bottom: 20px;
-    /* Add spacing below the header */
     font-size: 1.5rem;
 }
 
 .dashboard-header h2 {
     margin: 0;
-    /* Remove default margin for consistent alignment */
     color: #000;
-    /* Match the red color of stats */
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-    /* Slight shadow for style */
 }
 
 #clock {
     font-size: 1.2rem;
-    /* Slightly smaller than Dashboard text */
     padding: 5px 10px;
-    /* Add padding for a rounded look */
     background-color: rgba(34, 34, 34, 0.9);
-    /* Semi-transparent dark background */
     color: #fff;
-    /* White text for contrast */
     border-radius: 8px;
-    /* Rounded corners */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    /* Subtle shadow for elevation */
     text-align: center;
     min-width: 100px;
-    /* Ensure consistent size */
 }
 
 .modal {
     display: none;
-    /* Hidden by default */
     position: fixed;
     z-index: 1;
     left: 0;
