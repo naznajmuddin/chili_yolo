@@ -27,13 +27,13 @@ RESET_KEYS = [
 
 app = Flask(__name__)
 app.secret_key = "123456"
-app.config["UPLOAD_FOLDER"] = "uploads"  # Directory to store uploaded images
+app.config["UPLOAD_FOLDER"] = "uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 # Load the YOLO model
-model = YOLO("best_v8large.pt")  # Replace 'yolov8n.pt' with your model if different
+image_model = YOLO("best_v8large.pt") # if image validation
+video_model = YOLO("best.pt") # if video feed
 
-# Define a color map for the classes
 CLASS_COLORS = {
     "Healthy": (0, 255, 0),  # Green
     "Yellowish": (0, 255, 255),  # Yellow
@@ -42,13 +42,13 @@ CLASS_COLORS = {
 
 @app.route("/")
 def index():
-    return render_template("index.html")  # HTML template for the main interface
+    return render_template("index.html")
 
 
 @app.route("/video_feed")
 def video_feed():
     def generate_frames():
-        camera = cv2.VideoCapture(0)  # Open webcam
+        camera = cv2.VideoCapture(0)
         try:
             while True:
                 success, frame = camera.read()
@@ -56,7 +56,7 @@ def video_feed():
                     break
                 else:
                     # YOLO detection logic
-                    results = model(frame, stream=True)
+                    results = video_model(frame, stream=True)
                     for result in results:
                         boxes = result.boxes.xyxy  # x1, y1, x2, y2
                         confidences = result.boxes.conf
@@ -65,12 +65,8 @@ def video_feed():
                             boxes, confidences, class_ids
                         ):
                             x1, y1, x2, y2 = map(int, box)
-                            class_name = model.names[
-                                int(class_id)
-                            ]  # Get the class name
-                            color = CLASS_COLORS.get(
-                                class_name, (255, 255, 255)
-                            )  # Default to white if class not in map
+                            class_name = video_model.names[int(class_id)]
+                            color = CLASS_COLORS.get(class_name, (255, 255, 255))
                             label = f"{class_name} {confidence:.2f}"
                             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                             cv2.putText(
@@ -90,7 +86,7 @@ def video_feed():
                         b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
                     )
         finally:
-            camera.release()  # Ensure camera is released when loop exits
+            camera.release()
 
     return Response(
         generate_frames(), mimetype="multipart/x-mixed-replace; boundary=frame"
@@ -107,7 +103,7 @@ def upload():
     if file:
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
         file.save(filepath)
-        increment_counter("upload")  # Increment the upload counter here
+        increment_counter("upload")
         return redirect(url_for("analyse", filename=file.filename))
 
 
@@ -117,7 +113,7 @@ def analyse(filename):
     image = cv2.imread(filepath)
 
     # Perform YOLO object detection
-    results = model(image)
+    results = image_model(image)
     healthy_count = 0
     yellowish_count = 0
 
@@ -127,22 +123,19 @@ def analyse(filename):
         class_ids = result.boxes.cls
         for box, confidence, class_id in zip(boxes, confidences, class_ids):
             x1, y1, x2, y2 = map(int, box)
-            class_name = model.names[int(class_id)]  # Get the class name
+            class_name = image_model.names[int(class_id)]
             if class_name == "Healthy":
                 healthy_count += 1
             elif class_name == "Yellowish":
                 yellowish_count += 1
 
-            color = CLASS_COLORS.get(
-                class_name, (255, 255, 255)
-            )  # Default to white if class not in map
+            color = CLASS_COLORS.get(class_name, (255, 255, 255))
             label = f"{class_name} {confidence:.2f}"
             cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
             cv2.putText(
                 image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 5
             )
 
-    # Increment the analysis counter
     increment_counter("analysis")
 
     # Calculate the percentage of Yellowish
@@ -151,18 +144,16 @@ def analyse(filename):
         (yellowish_count / total_count) * 100 if total_count > 0 else 0
     )
 
-    # Determine overall health
     overall_health = "Healthy" if yellowish_percentage <= 5 else "Unhealthy"
 
-    # Get the image dimensions
     height, width, _ = image.shape
 
-    # Text to display
     healthy_text = f"Healthy: {healthy_count}"
     yellowish_text = f"Yellowish: {yellowish_count}"
-    overall_health_text = f"Overall: {overall_health} ({yellowish_percentage:.1f}%)"
+    overall_health_text = (
+        f"Yellowish Leaves: {overall_health} ({yellowish_percentage:.1f}%)"
+    )
 
-    # Font and scale settings
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 1.5
     thickness = 5
@@ -176,7 +167,6 @@ def analyse(filename):
     yellowish_x = (width - yellowish_size[0]) // 2
     yellowish_y = height // 2 - 30
 
-    # Calculate text position for Overall Health
     overall_health_size = cv2.getTextSize(
         overall_health_text, font, font_scale, thickness
     )[0]
@@ -201,7 +191,6 @@ def analyse(filename):
     overall_health_bg_x2 = overall_health_x + overall_health_size[0] + 10
     overall_health_bg_y2 = overall_health_y + 10
 
-    # Draw rectangles with a solid color (e.g., black)
     cv2.rectangle(
         image,
         (healthy_bg_x1, healthy_bg_y1),
@@ -224,7 +213,6 @@ def analyse(filename):
         -1,
     )
 
-    # Draw the text on top of the rectangles
     cv2.putText(
         image,
         healthy_text,
@@ -253,7 +241,6 @@ def analyse(filename):
         thickness,
     )
 
-    # Save the annotated image
     annotated_path = os.path.join(app.config["UPLOAD_FOLDER"], f"annotated_{filename}")
     cv2.imwrite(annotated_path, image)
 
@@ -263,7 +250,6 @@ def analyse(filename):
     session["overall_health"] = overall_health
     session["yellowish_percentage"] = yellowish_percentage
 
-    # Redirect to the annotated image
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
 
@@ -293,7 +279,7 @@ def increment_counter(counter_type):
 
 def get_counters():
     return {
-        "uploaded": session.get("upload_count", 0),  # Total screen plant
+        "uploaded": session.get("upload_count", 0),
         "analyzed": session.get("analysis_count", 0),
         "healthy": session.get("healthy_count", 0),
         "yellowish": session.get("yellowish_count", 0),
@@ -306,9 +292,7 @@ def get_counters():
 def check_and_reset_stats():
     """Check if it's a new day and reset daily stats."""
     if "last_reset" not in session:
-        session["last_reset"] = datetime.now().strftime(
-            "%Y-%m-%d"
-        )  # Store the date as a string
+        session["last_reset"] = datetime.now().strftime("%Y-%m-%d")
 
     last_reset_date = session["last_reset"]
     current_date = datetime.now().strftime("%Y-%m-%d")
