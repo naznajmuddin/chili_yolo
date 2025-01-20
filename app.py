@@ -9,12 +9,21 @@ from flask import (
     session,
     jsonify,
 )
+from datetime import datetime, timedelta
 import os
 import cv2
 from ultralytics import YOLO
 
 UPLOAD_COUNTER = 0
 ANALYSIS_COUNTER = 0
+
+RESET_KEYS = [
+    "healthy_count",
+    "yellowish_count",
+    "overall_health",
+    "yellowish_percentage",
+    "analysis_count",
+]
 
 app = Flask(__name__)
 app.secret_key = "123456"
@@ -284,13 +293,32 @@ def increment_counter(counter_type):
 
 def get_counters():
     return {
-        "uploaded": session.get("upload_count", 0),
+        "uploaded": session.get("upload_count", 0),  # Total screen plant
         "analyzed": session.get("analysis_count", 0),
         "healthy": session.get("healthy_count", 0),
         "yellowish": session.get("yellowish_count", 0),
         "overall_health": session.get("overall_health", "Unknown"),
         "yellowish_percentage": session.get("yellowish_percentage", 0),
     }
+
+
+@app.before_request
+def check_and_reset_stats():
+    """Check if it's a new day and reset daily stats."""
+    if "last_reset" not in session:
+        session["last_reset"] = datetime.now().strftime(
+            "%Y-%m-%d"
+        )  # Store the date as a string
+
+    last_reset_date = session["last_reset"]
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
+    if current_date != last_reset_date:
+        # Reset the stats
+        for key in RESET_KEYS:
+            session[key] = 0 if key != "overall_health" else "Unknown"
+
+        session["last_reset"] = current_date
 
 
 @app.route("/stats")
