@@ -49,6 +49,11 @@
               <p>Current Health Status</p>
             </div>
             <div>
+              <canvas id="totalYellowishChart" width="150" height="150"></canvas>
+              <p id="totalYellowishPercentageText" style="text-align: center; font-weight: bold; margin-top: 10px;"></p>
+              <p>Total Health Status</p>
+            </div>
+            <div>
               <h3 id="currentScreenPlant"></h3>
               <p>Current Screen Plant</p>
             </div>
@@ -136,6 +141,48 @@
       }
       
       let yellowishChart
+      let totalHealthChart
+      
+      function initializeTotalHealthChart() {
+        const ctx = document.getElementById('totalYellowishChart').getContext('2d')
+      
+        totalHealthChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Healthy', 'Yellowish'],
+            datasets: [
+              {
+                label: '(%)',
+                data: [0, 100], // Default initial values
+                backgroundColor: ['#00FF00', '#FFD700'], // Green and Yellow
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            cutout: '70%',
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            }
+          }
+        })
+      }
+      
+      function updateTotalHealthChart(healthyPercentage) {
+        if (totalHealthChart) {
+          // Update chart data
+          totalHealthChart.data.datasets[0].data = [healthyPercentage, 100 - healthyPercentage]
+          totalHealthChart.update()
+      
+          // Update the total health percentage text
+          const percentageText = `${healthyPercentage.toFixed(1)}%`
+          document.getElementById('totalYellowishPercentageText').textContent = percentageText
+        }
+      }
       
       // Function to initialize the Yellowish Percentage chart
       function initializeYellowishChart() {
@@ -195,6 +242,7 @@
       
           // Update the Yellowish Percentage chart and text
           updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
+          updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)))
         } catch (error) {
           console.error('Error fetching stats:', error)
         }
@@ -237,8 +285,9 @@
       
       // Initialize everything on page load
       document.addEventListener('DOMContentLoaded', () => {
-        initializeYellowishChart() // Initialize the donut chart
-        updateStats() // Initial stats update
+        initializeYellowishChart()
+        initializeTotalHealthChart()
+        updateStats()
         setInterval(updateStats, 5000) // Periodically update stats
       })
       

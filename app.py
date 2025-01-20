@@ -31,8 +31,8 @@ app.config["UPLOAD_FOLDER"] = "uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 # Load the YOLO model
-image_model = YOLO("best_v8large.pt") # if image validation
-video_model = YOLO("best.pt") # if video feed
+image_model = YOLO("best_v8large.pt")  # if image validation
+video_model = YOLO("best.pt")  # if video feed
 
 CLASS_COLORS = {
     "Healthy": (0, 255, 0),  # Green
@@ -105,6 +105,16 @@ def upload():
         file.save(filepath)
         increment_counter("upload")
         return redirect(url_for("analyse", filename=file.filename))
+
+
+@app.before_request
+def setup_cumulative_stats():
+    if "cumulative_healthy" not in session:
+        session["cumulative_healthy"] = 0
+    if "cumulative_yellowish" not in session:
+        session["cumulative_yellowish"] = 0
+    if "total_screened" not in session:
+        session["total_screened"] = 0
 
 
 @app.route("/analyse/<filename>")
@@ -250,6 +260,19 @@ def analyse(filename):
     session["overall_health"] = overall_health
     session["yellowish_percentage"] = yellowish_percentage
     session["analyzed_image"] = f"annotated_{filename}"
+    session["cumulative_healthy"] += healthy_count
+    session["cumulative_yellowish"] += yellowish_count
+    session["total_screened"] += 1
+
+    total_cumulative_count = (
+        session["cumulative_healthy"] + session["cumulative_yellowish"]
+    )
+    total_health_percentage = (
+        (session["cumulative_healthy"] / total_cumulative_count) * 100
+        if total_cumulative_count > 0
+        else 0
+    )
+    session["total_health_percentage"] = total_health_percentage
 
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
@@ -309,9 +332,11 @@ def check_and_reset_stats():
 @app.route("/stats")
 def stats():
     counters = get_counters()
-    counters["analyzed_image_url"] = url_for("show_image", filename=session.get("analyzed_image", ""))
+    counters["total_health_percentage"] = session.get("total_health_percentage", 0)
+    counters["analyzed_image_url"] = url_for(
+        "show_image", filename=session.get("analyzed_image", "")
+    )
     return jsonify(counters)
-
 
 
 if __name__ == "__main__":
