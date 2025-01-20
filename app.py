@@ -249,6 +249,7 @@ def analyse(filename):
     session["yellowish_count"] = yellowish_count
     session["overall_health"] = overall_health
     session["yellowish_percentage"] = yellowish_percentage
+    session["analyzed_image"] = f"annotated_{filename}"
 
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
@@ -308,7 +309,9 @@ def check_and_reset_stats():
 @app.route("/stats")
 def stats():
     counters = get_counters()
+    counters["analyzed_image_url"] = url_for("show_image", filename=session.get("analyzed_image", ""))
     return jsonify(counters)
+
 
 
 if __name__ == "__main__":

@@ -58,19 +58,83 @@
             </div>
           </div>
           <div class="buttons">
-            <button>PRINT CURRENT RESULT</button>
-            <button>PRINT OVERALL RESULT</button>
+            <button onclick="openCurrentResultModal()">DISPLAY CURRENT RESULT</button>
+            <button>DISPLAY OVERALL RESULT</button>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Modal for Current Result -->
+    <div id="currentResultModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('currentResultModal')">&times;</span>
+        <h2>Current Health Status</h2>
+        <p>
+          <strong>Health Status:</strong> <span id="modalCurrentHealth"></span>
+        </p>
+        <p>
+          <strong>Healthy Plants Detected:</strong> <span id="modalHealthyPlants"></span>
+        </p>
+        <p>
+          <strong>Yellowish Plants Detected:</strong> <span id="modalYellowishPlants"></span>
+        </p>
+        <div id="modalAnalyzedImageContainer">
+          <h3>Processed Image:</h3>
+          <img id="modalAnalyzedImage" src="" alt="Analyzed Plant Image" />
+        </div>
+        <!-- <button onclick="printCurrentResult()">PRINT</button> -->
+      </div>
+    </div>
+
+    <style>
+      /* Modal styling */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      
+      .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      
+      .close {
+        color: red;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      
+      .close:hover {
+        color: darkred;
+      }
+      
+      #modalAnalyzedImage {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 10px 0;
+      }
+    </style>
+
     <script>
       function openCamera() {
         window.open('/video_feed', '_blank')
       }
-    </script>
-    <script>
+      
       let yellowishChart
       
       // Function to initialize the Yellowish Percentage chart
@@ -136,15 +200,48 @@
         }
       }
       
+      // Open the modal and populate data
+      function openCurrentResultModal() {
+        fetch('/stats')
+          .then((response) => response.json())
+          .then((stats) => {
+            // Populate modal content
+            document.getElementById('modalCurrentHealth').textContent = stats.overall_health
+            document.getElementById('modalHealthyPlants').textContent = stats.healthy
+            document.getElementById('modalYellowishPlants').textContent = stats.yellowish
+      
+            // Update the analyzed image
+            const analyzedImageURL = stats.analyzed_image_url || ''
+            document.getElementById('modalAnalyzedImage').src = analyzedImageURL
+      
+            // Display the modal
+            document.getElementById('currentResultModal').style.display = 'block'
+          })
+          .catch((error) => console.error('Error fetching stats:', error))
+      }
+      
+      // Close the modal
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none'
+      }
+      
+      // Print the current result
+      function printCurrentResult() {
+        const printContent = document.querySelector('#currentResultModal .modal-content').innerHTML
+        const originalContent = document.body.innerHTML
+        document.body.innerHTML = printContent
+        window.print()
+        document.body.innerHTML = originalContent
+        window.location.reload()
+      }
+      
       // Initialize everything on page load
       document.addEventListener('DOMContentLoaded', () => {
         initializeYellowishChart() // Initialize the donut chart
         updateStats() // Initial stats update
         setInterval(updateStats, 5000) // Periodically update stats
       })
-    </script>
-
-    <script>
+      
       function updateClock() {
         const clockElement = document.getElementById('clock')
         const now = new Date()
