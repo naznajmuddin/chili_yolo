@@ -149,12 +149,12 @@
         totalHealthChart = new Chart(ctx, {
           type: 'doughnut',
           data: {
-            labels: ['Healthy', 'Yellowish'],
+            labels: ['Yellowish', 'Healthy'],
             datasets: [
               {
                 label: '(%)',
                 data: [0, 100], // Default initial values
-                backgroundColor: ['#00FF00', '#FFD700'], // Green and Yellow
+                backgroundColor: ['#FFD700', '#00FF00'], // Green and Yellow
                 borderWidth: 1
               }
             ]

@@ -30,6 +30,18 @@ app.secret_key = "123456"
 app.config["UPLOAD_FOLDER"] = "uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+has_reset = False  # Flag to ensure session is cleared only once
+
+
+@app.before_request
+def reset_session_on_start():
+    global has_reset
+    if not has_reset:
+        session.clear()
+        print("Session data has been cleared on app start.")
+        has_reset = True
+
+
 # Load the YOLO model
 image_model = YOLO("best_v8large.pt")  # if image validation
 video_model = YOLO("best.pt")  # if video feed
@@ -260,19 +272,27 @@ def analyse(filename):
     session["overall_health"] = overall_health
     session["yellowish_percentage"] = yellowish_percentage
     session["analyzed_image"] = f"annotated_{filename}"
-    session["cumulative_healthy"] += healthy_count
-    session["cumulative_yellowish"] += yellowish_count
+    session["cumulative_healthy"] = session.get("cumulative_healthy", 0) + healthy_count
+    session["cumulative_yellowish"] = (
+        session.get("cumulative_yellowish", 0) + yellowish_count
+    )
+
     session["total_screened"] += 1
 
     total_cumulative_count = (
         session["cumulative_healthy"] + session["cumulative_yellowish"]
     )
     total_health_percentage = (
-        (session["cumulative_healthy"] / total_cumulative_count) * 100
+        (session["cumulative_yellowish"] / total_cumulative_count) * 100
         if total_cumulative_count > 0
         else 0
     )
     session["total_health_percentage"] = total_health_percentage
+
+    print("Cumulative Healthy:", session["cumulative_healthy"])
+    print("Cumulative Yellowish:", session["cumulative_yellowish"])
+    print("Total Cumulative Leaves:", total_cumulative_count)
+    print("Total Screened:", session["total_screened"])
 
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
@@ -323,6 +343,10 @@ def check_and_reset_stats():
 
     if current_date != last_reset_date:
         # Reset the stats
+        session["cumulative_healthy"] = 0
+        session["cumulative_yellowish"] = 0
+        session["total_screened"] = 0
+
         for key in RESET_KEYS:
             session[key] = 0 if key != "overall_health" else "Unknown"
 
