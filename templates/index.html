@@ -68,7 +68,7 @@
 
           <div class="buttons">
             <button onclick="openCurrentResultModal()">DISPLAY CURRENT RESULT</button>
-            <button>DISPLAY OVERALL RESULT</button>
+            <button onclick="openOverallResultModal()">DISPLAY OVERALL RESULT</button>
           </div>
         </div>
       </div>
@@ -93,6 +93,23 @@
           <img id="modalAnalyzedImage" src="" alt="Processed Plant Image" />
         </div>
         <!-- <button onclick="printCurrentResult()">PRINT</button> -->
+      </div>
+    </div>
+
+    <!-- Modal for Overall Result -->
+    <div id="overallResultModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('overallResultModal')">&times;</span>
+        <h2>Overall Health Status</h2>
+        <p>
+          <strong>Total Screen Plant:</strong> <span id="modalTotalScreenPlant"></span>
+        </p>
+        <p>
+          <strong>Total Healthy Percentage:</strong> <span id="modalTotalYellowishPercentage"></span>%
+        </p>
+        <p>
+          <strong>Total Yellowish Percentage:</strong> <span id="modalTotalHealthyPercentage"></span>%
+        </p>
       </div>
     </div>
 
@@ -285,6 +302,36 @@
         window.print()
         document.body.innerHTML = originalContent
         window.location.reload()
+      }
+      
+      // Open Overall Result Modal
+      function openOverallResultModal() {
+        fetch('/stats') // Assuming this endpoint provides overall stats
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch overall stats')
+            }
+            return response.json()
+          })
+          .then((stats) => {
+            // Calculate the yellowish percentage as 100 minus the health percentage
+            const totalHealthPercentage = stats.total_health_percentage || 0
+            const totalYellowishPercentage = 100 - totalHealthPercentage
+      
+            // Populate modal content
+            document.getElementById('modalTotalScreenPlant').textContent = stats.uploaded || 'N/A'
+            document.getElementById('modalTotalHealthyPercentage').textContent = totalHealthPercentage.toFixed(1)
+            document.getElementById('modalTotalYellowishPercentage').textContent = totalYellowishPercentage.toFixed(1)
+      
+            // Display the modal
+            document.getElementById('overallResultModal').style.display = 'block'
+          })
+          .catch((error) => {
+            console.error('Error fetching overall stats:', error)
+      
+            // Optionally show the modal even if data fetch fails
+            document.getElementById('overallResultModal').style.display = 'block'
+          })
       }
       
       // Initialize everything on page load
