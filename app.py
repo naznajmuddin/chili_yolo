@@ -269,6 +269,16 @@ def analyse(filename):
     annotated_path = os.path.join(app.config["UPLOAD_FOLDER"], f"annotated_{filename}")
     cv2.imwrite(annotated_path, image)
 
+    # Track cumulative results for healthy and unhealthy classifications
+    if overall_health == "Healthy":
+        session["cumulative_healthy_classifications"] = (
+            session.get("cumulative_healthy_classifications", 0) + 1
+        )
+    else:
+        session["cumulative_unhealthy_classifications"] = (
+            session.get("cumulative_unhealthy_classifications", 0) + 1
+        )
+
     # Store counts and health in the session
     session["healthy_count"] = healthy_count
     session["yellowish_count"] = yellowish_count
@@ -365,6 +375,13 @@ def stats():
     )
     counters["total_cumulative_healthy"] = session.get("cumulative_healthy", 0)
     counters["total_cumulative_yellowish"] = session.get("cumulative_yellowish", 0)
+
+    counters["cumulative_healthy_classifications"] = session.get(
+        "cumulative_healthy_classifications", 0
+    )
+    counters["cumulative_unhealthy_classifications"] = session.get(
+        "cumulative_unhealthy_classifications", 0
+    )
     return jsonify(counters)
 
 

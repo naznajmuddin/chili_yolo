@@ -176,7 +176,7 @@
       totalHealthChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Yellowish', 'Healthy'],
+          labels: ['Unhealthy', 'Healthy'],
           datasets: [
             {
               label: '(%)',
@@ -199,26 +199,27 @@
       })
     }
 
-    function updateTotalHealthChart(healthyPercentage, cumulativeHealthy, cumulativeYellowish) {
+    function updateTotalHealthChart(cumulativeHealthy, cumulativeYellowish, cumulativeUploaded, healthyPercentage, unhealthyPercentage) {
       if (totalHealthChart) {
-        // Update chart data
-        totalHealthChart.data.datasets[0].data = [healthyPercentage, 100 - healthyPercentage]
-        totalHealthChart.update()
+        // Calculate percentages correctly
+        let healthyPercentage = (cumulativeHealthy / cumulativeUploaded) * 100;
+        let unhealthyPercentage = (cumulativeYellowish / cumulativeUploaded) * 100;
 
-        let cumulativeHealthy = stats.total_cumulative_healthy || 0;
-        let cumulativeYellowish = stats.total_cumulative_yellowish || 0;
+        // Correct data assignment to the chart
+        totalHealthChart.data.datasets[0].data = [unhealthyPercentage, healthyPercentage];
+        totalHealthChart.update();
 
-        // Update the total health percentage text
-        const percentageText = `${healthyPercentage.toFixed(1)}% Yellowish`
-        document.getElementById('totalYellowishPercentageText').textContent = percentageText
+        // Update the displayed percentage texts
+        document.getElementById('totalYellowishPercentageText').textContent = `${unhealthyPercentage.toFixed(1)}% Unhealthy`;
+        document.getElementById('totalHealthyPercentageText').textContent = `${healthyPercentage.toFixed(1)}% Healthy`;
 
-        const healthyPercentageText = `${(100 - healthyPercentage).toFixed(1)}% Healthy`;
-        document.getElementById('totalHealthyPercentageText').textContent = healthyPercentageText
-
-        document.getElementById('cumulativeHealthyText').textContent = cumulativeHealthy
-        document.getElementById('cumulativeYellowishText').textContent = cumulativeYellowish
+        // Update the displayed cumulative counts
+        document.getElementById('cumulativeHealthyText').textContent = `${cumulativeHealthy} Healthy`;
+        document.getElementById('cumulativeYellowishText').textContent = `${cumulativeYellowish} Unhealthy`;
       }
     }
+
+
 
     // Function to initialize the Yellowish Percentage chart
     function initializeYellowishChart() {
@@ -269,24 +270,27 @@
     // Fetch stats and update the dashboard
     async function updateStats() {
       try {
-        const response = await fetch('/stats')
-        const stats = await response.json()
+        const response = await fetch('/stats');
+        const stats = await response.json();
 
-        // Update other stats dynamically
-        document.querySelector('#healthyCount').textContent = stats.healthy
-        document.querySelector('#yellowishCount').textContent = stats.yellowish
-        document.querySelector('#overallHealth').textContent = stats.overall_health
-        document.querySelector('#currentScreenPlant').textContent = stats.analyzed
-        document.querySelector('#totalScreenPlant').textContent = stats.uploaded
+        // Update dashboard elements
+        document.querySelector('#healthyCount').textContent = stats.healthy;
+        document.querySelector('#yellowishCount').textContent = stats.yellowish;
+        document.querySelector('#overallHealth').textContent = stats.overall_health;
+        document.querySelector('#currentScreenPlant').textContent = stats.analyzed;
+        document.querySelector('#totalScreenPlant').textContent = stats.uploaded;
 
-        document.querySelector('#cumulativeHealthyText').textContent = `${stats.total_cumulative_healthy} Healthy`;
-        document.querySelector('#cumulativeYellowishText').textContent = `${stats.total_cumulative_yellowish} Unhealthy`;
+        document.querySelector('#cumulativeHealthyText').textContent = `${stats.cumulative_healthy_classifications} Healthy`;
+        document.querySelector('#cumulativeYellowishText').textContent = `${stats.cumulative_unhealthy_classifications} Unhealthy`;
 
-        // Update the Yellowish Percentage chart and text
-        updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
-        updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)), stats.total_cumulative_healthy, stats.total_cumulative_yellowish)
+        // Update cumulative counts and charts
+        const healthyPercentage = (stats.cumulative_healthy_classifications / stats.uploaded) * 100;
+        const unhealthyPercentage = (stats.cumulative_unhealthy_classifications / stats.uploaded) * 100;
+
+        updateYellowishChart(stats.yellowish_percentage);
+        updateTotalHealthChart(stats.cumulative_healthy_classifications, stats.cumulative_unhealthy_classifications, stats.uploaded, healthyPercentage, unhealthyPercentage);
       } catch (error) {
-        console.error('Error fetching stats:', error)
+        console.error('Error fetching stats:', error);
       }
     }
 
