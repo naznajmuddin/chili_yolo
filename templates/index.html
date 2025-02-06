@@ -49,6 +49,7 @@
           <div>
             <canvas id="yellowishChart"></canvas>
             <p id="yellowishPercentageText"></p>
+            <p id="healthyPercentageText"></p>
             <p>Current Health Status</p>
           </div>
 
@@ -56,6 +57,7 @@
           <div>
             <canvas id="totalYellowishChart"></canvas>
             <p id="totalYellowishPercentageText"></p>
+            <p id="totalHealthyPercentageText"></p>
             <p>Total Chili Plant Status</p>
           </div>
           <div id="currentScreenPlantSection">
@@ -204,8 +206,11 @@
         totalHealthChart.update()
 
         // Update the total health percentage text
-        const percentageText = `${healthyPercentage.toFixed(1)}%`
+        const percentageText = `${healthyPercentage.toFixed(1)}% Yellowish`
         document.getElementById('totalYellowishPercentageText').textContent = percentageText
+
+        const healthyPercentageText = `${(100 - healthyPercentage).toFixed(1)}% Healthy`;
+        document.getElementById('totalHealthyPercentageText').textContent = healthyPercentageText
       }
     }
 
@@ -247,8 +252,11 @@
         yellowishChart.update()
 
         // Update the Yellowish Percentage text
-        const percentageText = `${yellowishPercentage.toFixed(1)}%`
+        const percentageText = `${yellowishPercentage.toFixed(1)}% Yellowish`
         document.getElementById('yellowishPercentageText').textContent = percentageText
+
+        const healthyPercentageText = `${(100 - yellowishPercentage).toFixed(1)}% Healthy`;
+        document.getElementById('healthyPercentageText').textContent = healthyPercentageText
       }
     }
 
