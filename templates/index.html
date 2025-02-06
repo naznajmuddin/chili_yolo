@@ -56,8 +56,8 @@
           <!-- Second row items -->
           <div>
             <canvas id="totalYellowishChart"></canvas>
-            <p id="totalYellowishPercentageText"></p>
-            <p id="totalHealthyPercentageText"></p>
+            <p id="cumulativeHealthyText"></p>
+            <p id="cumulativeYellowishText"></p>
             <p>Total Chili Plant Status</p>
           </div>
           <div id="currentScreenPlantSection">
@@ -199,11 +199,14 @@
       })
     }
 
-    function updateTotalHealthChart(healthyPercentage) {
+    function updateTotalHealthChart(healthyPercentage, cumulativeHealthy, cumulativeYellowish) {
       if (totalHealthChart) {
         // Update chart data
         totalHealthChart.data.datasets[0].data = [healthyPercentage, 100 - healthyPercentage]
         totalHealthChart.update()
+
+        let cumulativeHealthy = stats.total_cumulative_healthy || 0;
+        let cumulativeYellowish = stats.total_cumulative_yellowish || 0;
 
         // Update the total health percentage text
         const percentageText = `${healthyPercentage.toFixed(1)}% Yellowish`
@@ -211,6 +214,9 @@
 
         const healthyPercentageText = `${(100 - healthyPercentage).toFixed(1)}% Healthy`;
         document.getElementById('totalHealthyPercentageText').textContent = healthyPercentageText
+
+        document.getElementById('cumulativeHealthyText').textContent = cumulativeHealthy
+        document.getElementById('cumulativeYellowishText').textContent = cumulativeYellowish
       }
     }
 
@@ -273,9 +279,12 @@
         document.querySelector('#currentScreenPlant').textContent = stats.analyzed
         document.querySelector('#totalScreenPlant').textContent = stats.uploaded
 
+        document.querySelector('#cumulativeHealthyText').textContent = `${stats.total_cumulative_healthy} Healthy`;
+        document.querySelector('#cumulativeYellowishText').textContent = `${stats.total_cumulative_yellowish} Unhealthy`;
+
         // Update the Yellowish Percentage chart and text
         updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
-        updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)))
+        updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)), stats.total_cumulative_healthy, stats.total_cumulative_yellowish)
       } catch (error) {
         console.error('Error fetching stats:', error)
       }

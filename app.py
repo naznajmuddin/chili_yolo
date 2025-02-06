@@ -363,12 +363,13 @@ def stats():
     counters["analyzed_image_url"] = url_for(
         "show_image", filename=session.get("analyzed_image", "")
     )
+    counters["total_cumulative_healthy"] = session.get("cumulative_healthy", 0)
+    counters["total_cumulative_yellowish"] = session.get("cumulative_yellowish", 0)
     return jsonify(counters)
 
 
 @app.route("/download_csv")
 def download_csv():
-    # Example data (replace with your actual session data)
     data = [
         {
             "no": 1,
@@ -379,7 +380,6 @@ def download_csv():
         }
     ]
 
-    # Use StringIO to create an in-memory text stream for CSV
     csv_output = StringIO()
     writer = csv.writer(csv_output)
 
@@ -406,11 +406,9 @@ def download_csv():
             ]
         )
 
-    # Get the CSV content as a string
     csv_data = csv_output.getvalue()
     csv_output.close()
 
-    # Return the CSV content as a response
     response = make_response(csv_data)
     response.headers["Content-Disposition"] = "attachment; filename=results.csv"
     response.headers["Content-type"] = "text/csv"
