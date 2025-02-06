@@ -8,10 +8,13 @@ from flask import (
     send_from_directory,
     session,
     jsonify,
+    make_response,
 )
 from datetime import datetime, timedelta
+from io import StringIO
 import os
 import cv2
+import csv
 from ultralytics import YOLO
 
 UPLOAD_COUNTER = 0
@@ -43,7 +46,7 @@ def reset_session_on_start():
 
 
 # Load the YOLO model
-image_model = YOLO("best_v8large.pt")  # if image validation
+image_model = YOLO("medium_50_best.pt")  # if image validation
 video_model = YOLO("best.pt")  # if video feed
 
 CLASS_COLORS = {
@@ -361,6 +364,58 @@ def stats():
         "show_image", filename=session.get("analyzed_image", "")
     )
     return jsonify(counters)
+
+
+@app.route("/download_csv")
+def download_csv():
+    # Example data (replace with your actual session data)
+    data = [
+        {
+            "no": 1,
+            "image_name": session.get("analyzed_image", "N/A"),
+            "healthy_count": session.get("healthy_count", 0),
+            "yellowish_count": session.get("yellowish_count", 0),
+            "overall_health": session.get("overall_health", "Unknown"),
+        }
+    ]
+
+    # Use StringIO to create an in-memory text stream for CSV
+    csv_output = StringIO()
+    writer = csv.writer(csv_output)
+
+    # Write the header
+    writer.writerow(
+        [
+            "No.",
+            "Image Name",
+            "Healthy Leaf Detected",
+            "Yellowish Leaf Detected",
+            "Chili Plant Health Condition",
+        ]
+    )
+
+    # Write the data rows
+    for row in data:
+        writer.writerow(
+            [
+                row["no"],
+                row["image_name"],
+                row["healthy_count"],
+                row["yellowish_count"],
+                row["overall_health"],
+            ]
+        )
+
+    # Get the CSV content as a string
+    csv_data = csv_output.getvalue()
+    csv_output.close()
+
+    # Return the CSV content as a response
+    response = make_response(csv_data)
+    response.headers["Content-Disposition"] = "attachment; filename=results.csv"
+    response.headers["Content-type"] = "text/csv"
+
+    return response
 
 
 if __name__ == "__main__":

@@ -1,359 +1,369 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chili Plant Health Screening System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1>CHILI PLANT HEALTH SCREENING SYSTEM</h1>
-      </header>
 
-      <div class="main-content">
-        <div class="left-panel">
-          <h2>Image Validation Mode</h2>
-          <form action="/upload" method="post" enctype="multipart/form-data" target="_blank">
-            <input type="file" name="image" accept="image/*" />
-            <button type="submit">UPLOAD & ANALYSE</button>
-          </form>
-          <button onclick="window.location.reload()">RESET</button>
-          <h2>Video Deployment Mode</h2>
-          <button onclick="openCamera()">OPEN CAMERA</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chili Plant Health Condition Monitoring System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>CHILI PLANT HEALTH CONDITION MONITORING SYSTEM</h1>
+    </header>
+
+    <div class="main-content">
+      <div class="left-panel">
+        <h2>Image Validation Mode</h2>
+        <form action="/upload" method="post" enctype="multipart/form-data" target="_blank">
+          <input type="file" name="image" accept="image/*" />
+          <button type="submit">ANALYSE</button>
+        </form>
+        <button onclick="window.location.reload()">RESET</button>
+        <h2>Video Deployment Mode</h2>
+        <button onclick="openCamera()">OPEN CAMERA</button>
+      </div>
+
+      <div class="dashboard">
+        <div class="dashboard-header">
+          <h2>Dashboard</h2>
+          <span id="clock"></span>
+        </div>
+        <div class="stats">
+          <!-- First row items -->
+          <div>
+            <h3 id="healthyCount"></h3>
+            <p>Healthy Leaf Detected</p>
+          </div>
+          <div>
+            <h3 id="yellowishCount"></h3>
+            <p>Yellowish Leaf Detected</p>
+          </div>
+          <div>
+            <h3 id="overallHealth"></h3>
+            <p>Chili Plant Health Condition</p>
+          </div>
+          <div>
+            <canvas id="yellowishChart"></canvas>
+            <p id="yellowishPercentageText"></p>
+            <p>Current Health Status</p>
+          </div>
+
+          <!-- Second row items -->
+          <div>
+            <canvas id="totalYellowishChart"></canvas>
+            <p id="totalYellowishPercentageText"></p>
+            <p>Total Chili Plant Status</p>
+          </div>
+          <div id="currentScreenPlantSection">
+            <h3 id="currentScreenPlant"></h3>
+            <p>Current Screen Plant</p>
+          </div>
+          <div>
+            <h3 id="totalScreenPlant"></h3>
+            <p>Total Screen Plant</p>
+          </div>
         </div>
 
-        <div class="dashboard">
-          <div class="dashboard-header">
-            <h2>Dashboard</h2>
-            <span id="clock"></span>
-          </div>
-          <div class="stats">
-            <!-- First row items -->
-            <div>
-              <h3 id="healthyCount"></h3>
-              <p>Healthy Plants Detected</p>
-            </div>
-            <div>
-              <h3 id="yellowishCount"></h3>
-              <p>Yellowish Plants Detected</p>
-            </div>
-            <div>
-              <h3 id="overallHealth"></h3>
-              <p>Plant Health Condition</p>
-            </div>
-            <div>
-              <canvas id="yellowishChart"></canvas>
-              <p id="yellowishPercentageText"></p>
-              <p>Current Health Status</p>
-            </div>
-
-            <!-- Second row items -->
-            <div>
-              <canvas id="totalYellowishChart"></canvas>
-              <p id="totalYellowishPercentageText"></p>
-              <p>Total Health Status</p>
-            </div>
-            <div>
-              <h3 id="currentScreenPlant"></h3>
-              <p>Current Screen Plant</p>
-            </div>
-            <div>
-              <h3 id="totalScreenPlant"></h3>
-              <p>Total Screen Plant</p>
-            </div>
-          </div>
-
-          <div class="buttons">
-            <button onclick="openCurrentResultModal()">DISPLAY CURRENT RESULT</button>
-            <button onclick="openOverallResultModal()">DISPLAY OVERALL RESULT</button>
-          </div>
+        <div class="buttons">
+          <button onclick="openCurrentResultModal()">DISPLAY CURRENT RESULT</button>
+          <button onclick="openOverallResultModal()">DISPLAY OVERALL RESULT</button>
+          <button onclick="downloadCSV()">PRINT RESULT</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modal for Current Result -->
-    <div id="currentResultModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal('currentResultModal')">&times;</span>
-        <h2>Current Health Status</h2>
-        <p>
-          <strong>Health Status:</strong> <span id="modalCurrentHealth"></span>
-        </p>
-        <p>
-          <strong>Healthy Plants Detected:</strong> <span id="modalHealthyPlants"></span>
-        </p>
-        <p>
-          <strong>Yellowish Plants Detected:</strong> <span id="modalYellowishPlants"></span>
-        </p>
-        <div id="modalAnalyzedImageContainer">
-          <h3>Processed Image:</h3>
-          <img id="modalAnalyzedImage" src="" alt="Processed Plant Image" />
-        </div>
-        <!-- <button onclick="printCurrentResult()">PRINT</button> -->
+  <!-- Modal for Current Result -->
+  <div id="currentResultModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('currentResultModal')">&times;</span>
+      <h2>Current Health Status</h2>
+      <p>
+        <strong>Health Status:</strong> <span id="modalCurrentHealth"></span>
+      </p>
+      <p>
+        <strong>Healthy Plants Detected:</strong> <span id="modalHealthyPlants"></span>
+      </p>
+      <p>
+        <strong>Yellowish Plants Detected:</strong> <span id="modalYellowishPlants"></span>
+      </p>
+      <div id="modalAnalyzedImageContainer">
+        <h3>Processed Image:</h3>
+        <img id="modalAnalyzedImage" src="" alt="Processed Plant Image" />
       </div>
+      <!-- <button onclick="printCurrentResult()">PRINT</button> -->
     </div>
+  </div>
 
-    <!-- Modal for Overall Result -->
-    <div id="overallResultModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeModal('overallResultModal')">&times;</span>
-        <h2>Overall Health Status</h2>
-        <p>
-          <strong>Total Screen Plant:</strong> <span id="modalTotalScreenPlant"></span>
-        </p>
-        <p>
-          <strong>Total Healthy Percentage:</strong> <span id="modalTotalYellowishPercentage"></span>%
-        </p>
-        <p>
-          <strong>Total Yellowish Percentage:</strong> <span id="modalTotalHealthyPercentage"></span>%
-        </p>
-      </div>
+  <!-- Modal for Overall Result -->
+  <div id="overallResultModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('overallResultModal')">&times;</span>
+      <h2>Overall Health Status</h2>
+      <p>
+        <strong>Total Screen Plant:</strong> <span id="modalTotalScreenPlant"></span>
+      </p>
+      <p>
+        <strong>Total Healthy Percentage:</strong> <span id="modalTotalYellowishPercentage"></span>%
+      </p>
+      <p>
+        <strong>Total Yellowish Percentage:</strong> <span id="modalTotalHealthyPercentage"></span>%
+      </p>
     </div>
+  </div>
 
-    <style>
-      /* Modal styling */
-      .modal {
-        display: none; /* Hidden by default */
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-      
-      .modal-content {
-        background-color: white;
-        margin: 10% auto;
-        padding: 20px;
-        border-radius: 8px;
-        width: 50%;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-      
-      .close {
-        color: red;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      
-      .close:hover {
-        color: darkred;
-      }
-      
-      #modalAnalyzedImage {
-        max-width: 100%;
-        height: auto;
-        display: block;
-        margin: 10px 0;
-      }
-    </style>
+  <style>
+    /* Modal styling */
+    .modal {
+      display: none;
+      /* Hidden by default */
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
-    <script>
-      function openCamera() {
-        window.open('/video_feed', '_blank')
-      }
-      
-      let yellowishChart
-      let totalHealthChart
-      
-      function initializeTotalHealthChart() {
-        const ctx = document.getElementById('totalYellowishChart').getContext('2d')
-      
-        totalHealthChart = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ['Yellowish', 'Healthy'],
-            datasets: [
-              {
-                label: '(%)',
-                data: [0, 100], // Default initial values
-                backgroundColor: ['#FFD700', '#00FF00'], // Green and Yellow
-                borderWidth: 1
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            cutout: '70%',
-            plugins: {
-              legend: {
-                display: true,
-                position: 'top'
-              }
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 50%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .close {
+      color: red;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: darkred;
+    }
+
+    #modalAnalyzedImage {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px 0;
+    }
+  </style>
+
+  <script>
+    function openCamera() {
+      window.open('/video_feed', '_blank')
+    }
+
+    let yellowishChart
+    let totalHealthChart
+
+    function initializeTotalHealthChart() {
+      const ctx = document.getElementById('totalYellowishChart').getContext('2d')
+
+      totalHealthChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Yellowish', 'Healthy'],
+          datasets: [
+            {
+              label: '(%)',
+              data: [0, 100], // Default initial values
+              backgroundColor: ['#FF0000', '#00FF00'], // Green and Yellow
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
             }
           }
-        })
-      }
-      
-      function updateTotalHealthChart(healthyPercentage) {
-        if (totalHealthChart) {
-          // Update chart data
-          totalHealthChart.data.datasets[0].data = [healthyPercentage, 100 - healthyPercentage]
-          totalHealthChart.update()
-      
-          // Update the total health percentage text
-          const percentageText = `${healthyPercentage.toFixed(1)}%`
-          document.getElementById('totalYellowishPercentageText').textContent = percentageText
         }
-      }
-      
-      // Function to initialize the Yellowish Percentage chart
-      function initializeYellowishChart() {
-        const ctx = document.getElementById('yellowishChart').getContext('2d')
-      
-        yellowishChart = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: ['Yellowish', 'Healthy'],
-            datasets: [
-              {
-                label: '(%)',
-                data: [0, 100], // Default initial values
-                backgroundColor: ['#FFD700', '#00FF00'], // Yellow and Green
-                borderWidth: 1
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            cutout: '70%', // Creates the donut effect
-            plugins: {
-              legend: {
-                display: true,
-                position: 'top'
-              }
-            }
-          }
-        })
-      }
-      
-      // Function to update the Yellowish Chart and Percentage Text
-      function updateYellowishChart(yellowishPercentage) {
-        if (yellowishChart) {
-          // Update chart data
-          yellowishChart.data.datasets[0].data = [yellowishPercentage, 100 - yellowishPercentage]
-          yellowishChart.update()
-      
-          // Update the Yellowish Percentage text
-          const percentageText = `${yellowishPercentage.toFixed(1)}%`
-          document.getElementById('yellowishPercentageText').textContent = percentageText
-        }
-      }
-      
-      // Fetch stats and update the dashboard
-      async function updateStats() {
-        try {
-          const response = await fetch('/stats')
-          const stats = await response.json()
-      
-          // Update other stats dynamically
-          document.querySelector('#healthyCount').textContent = stats.healthy
-          document.querySelector('#yellowishCount').textContent = stats.yellowish
-          document.querySelector('#overallHealth').textContent = stats.overall_health
-          document.querySelector('#currentScreenPlant').textContent = stats.analyzed
-          document.querySelector('#totalScreenPlant').textContent = stats.uploaded
-      
-          // Update the Yellowish Percentage chart and text
-          updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
-          updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)))
-        } catch (error) {
-          console.error('Error fetching stats:', error)
-        }
-      }
-      
-      // Open the modal and populate data
-      function openCurrentResultModal() {
-        fetch('/stats')
-          .then((response) => response.json())
-          .then((stats) => {
-            // Populate modal content
-            document.getElementById('modalCurrentHealth').textContent = stats.overall_health
-            document.getElementById('modalHealthyPlants').textContent = stats.healthy
-            document.getElementById('modalYellowishPlants').textContent = stats.yellowish
-      
-            // Update the analyzed image
-            const analyzedImageURL = stats.analyzed_image_url || ''
-            document.getElementById('modalAnalyzedImage').src = analyzedImageURL
-      
-            // Display the modal
-            document.getElementById('currentResultModal').style.display = 'block'
-          })
-          .catch((error) => console.error('Error fetching stats:', error))
-      }
-      
-      // Close the modal
-      function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none'
-      }
-      
-      // Print the current result
-      function printCurrentResult() {
-        const printContent = document.querySelector('#currentResultModal .modal-content').innerHTML
-        const originalContent = document.body.innerHTML
-        document.body.innerHTML = printContent
-        window.print()
-        document.body.innerHTML = originalContent
-        window.location.reload()
-      }
-      
-      // Open Overall Result Modal
-      function openOverallResultModal() {
-        fetch('/stats') // Assuming this endpoint provides overall stats
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Failed to fetch overall stats')
-            }
-            return response.json()
-          })
-          .then((stats) => {
-            // Calculate the yellowish percentage as 100 minus the health percentage
-            const totalHealthPercentage = stats.total_health_percentage || 0
-            const totalYellowishPercentage = 100 - totalHealthPercentage
-      
-            // Populate modal content
-            document.getElementById('modalTotalScreenPlant').textContent = stats.uploaded || 'N/A'
-            document.getElementById('modalTotalHealthyPercentage').textContent = totalHealthPercentage.toFixed(1)
-            document.getElementById('modalTotalYellowishPercentage').textContent = totalYellowishPercentage.toFixed(1)
-      
-            // Display the modal
-            document.getElementById('overallResultModal').style.display = 'block'
-          })
-          .catch((error) => {
-            console.error('Error fetching overall stats:', error)
-      
-            // Optionally show the modal even if data fetch fails
-            document.getElementById('overallResultModal').style.display = 'block'
-          })
-      }
-      
-      // Initialize everything on page load
-      document.addEventListener('DOMContentLoaded', () => {
-        initializeYellowishChart()
-        initializeTotalHealthChart()
-        updateStats()
-        setInterval(updateStats, 5000) // Periodically update stats
       })
-      
-      function updateClock() {
-        const clockElement = document.getElementById('clock')
-        const now = new Date()
-        const hours = String(now.getHours()).padStart(2, '0')
-        const minutes = String(now.getMinutes()).padStart(2, '0')
-        const seconds = String(now.getSeconds()).padStart(2, '0')
-        clockElement.textContent = `${hours}:${minutes}:${seconds}`
+    }
+
+    function updateTotalHealthChart(healthyPercentage) {
+      if (totalHealthChart) {
+        // Update chart data
+        totalHealthChart.data.datasets[0].data = [healthyPercentage, 100 - healthyPercentage]
+        totalHealthChart.update()
+
+        // Update the total health percentage text
+        const percentageText = `${healthyPercentage.toFixed(1)}%`
+        document.getElementById('totalYellowishPercentageText').textContent = percentageText
       }
-      
-      // Update the clock every second
-      setInterval(updateClock, 1000)
-      updateClock() // Initial call to show the time immediately
-    </script>
-  </body>
+    }
+
+    // Function to initialize the Yellowish Percentage chart
+    function initializeYellowishChart() {
+      const ctx = document.getElementById('yellowishChart').getContext('2d')
+
+      yellowishChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Yellowish', 'Healthy'],
+          datasets: [
+            {
+              label: '(%)',
+              data: [0, 100], // Default initial values
+              backgroundColor: ['#FF0000', '#00FF00'], // Yellow and Green
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          cutout: '70%', // Creates the donut effect
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          }
+        }
+      })
+    }
+
+    // Function to update the Yellowish Chart and Percentage Text
+    function updateYellowishChart(yellowishPercentage) {
+      if (yellowishChart) {
+        // Update chart data
+        yellowishChart.data.datasets[0].data = [yellowishPercentage, 100 - yellowishPercentage]
+        yellowishChart.update()
+
+        // Update the Yellowish Percentage text
+        const percentageText = `${yellowishPercentage.toFixed(1)}%`
+        document.getElementById('yellowishPercentageText').textContent = percentageText
+      }
+    }
+
+    // Fetch stats and update the dashboard
+    async function updateStats() {
+      try {
+        const response = await fetch('/stats')
+        const stats = await response.json()
+
+        // Update other stats dynamically
+        document.querySelector('#healthyCount').textContent = stats.healthy
+        document.querySelector('#yellowishCount').textContent = stats.yellowish
+        document.querySelector('#overallHealth').textContent = stats.overall_health
+        document.querySelector('#currentScreenPlant').textContent = stats.analyzed
+        document.querySelector('#totalScreenPlant').textContent = stats.uploaded
+
+        // Update the Yellowish Percentage chart and text
+        updateYellowishChart(parseFloat(stats.yellowish_percentage.toFixed(1)))
+        updateTotalHealthChart(parseFloat(stats.total_health_percentage.toFixed(1)))
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+      }
+    }
+
+    // Open the modal and populate data
+    function openCurrentResultModal() {
+      fetch('/stats')
+        .then((response) => response.json())
+        .then((stats) => {
+          // Populate modal content
+          document.getElementById('modalCurrentHealth').textContent = stats.overall_health
+          document.getElementById('modalHealthyPlants').textContent = stats.healthy
+          document.getElementById('modalYellowishPlants').textContent = stats.yellowish
+
+          // Update the analyzed image
+          const analyzedImageURL = stats.analyzed_image_url || ''
+          document.getElementById('modalAnalyzedImage').src = analyzedImageURL
+
+          // Display the modal
+          document.getElementById('currentResultModal').style.display = 'block'
+        })
+        .catch((error) => console.error('Error fetching stats:', error))
+    }
+
+    // Close the modal
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none'
+    }
+
+    // Print the current result
+    function printCurrentResult() {
+      const printContent = document.querySelector('#currentResultModal .modal-content').innerHTML
+      const originalContent = document.body.innerHTML
+      document.body.innerHTML = printContent
+      window.print()
+      document.body.innerHTML = originalContent
+      window.location.reload()
+    }
+
+    // Open Overall Result Modal
+    function openOverallResultModal() {
+      fetch('/stats') // Assuming this endpoint provides overall stats
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch overall stats')
+          }
+          return response.json()
+        })
+        .then((stats) => {
+          // Calculate the yellowish percentage as 100 minus the health percentage
+          const totalHealthPercentage = stats.total_health_percentage || 0
+          const totalYellowishPercentage = 100 - totalHealthPercentage
+
+          // Populate modal content
+          document.getElementById('modalTotalScreenPlant').textContent = stats.uploaded || 'N/A'
+          document.getElementById('modalTotalHealthyPercentage').textContent = totalHealthPercentage.toFixed(1)
+          document.getElementById('modalTotalYellowishPercentage').textContent = totalYellowishPercentage.toFixed(1)
+
+          // Display the modal
+          document.getElementById('overallResultModal').style.display = 'block'
+        })
+        .catch((error) => {
+          console.error('Error fetching overall stats:', error)
+
+          // Optionally show the modal even if data fetch fails
+          document.getElementById('overallResultModal').style.display = 'block'
+        })
+    }
+
+    // Initialize everything on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeYellowishChart()
+      initializeTotalHealthChart()
+      updateStats()
+      setInterval(updateStats, 5000) // Periodically update stats
+    })
+
+    function downloadCSV() {
+      window.location.href = '/download_csv';
+    }
+
+
+    function updateClock() {
+      const clockElement = document.getElementById('clock')
+      const now = new Date()
+      const hours = String(now.getHours()).padStart(2, '0')
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      const seconds = String(now.getSeconds()).padStart(2, '0')
+      clockElement.textContent = `${hours}:${minutes}:${seconds}`
+    }
+
+    // Update the clock every second
+    setInterval(updateClock, 1000)
+    updateClock() // Initial call to show the time immediately
+  </script>
+</body>
+
 </html>
