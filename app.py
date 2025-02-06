@@ -269,7 +269,7 @@ def analyse(filename):
     annotated_path = os.path.join(app.config["UPLOAD_FOLDER"], f"annotated_{filename}")
     cv2.imwrite(annotated_path, image)
 
-    # Track cumulative results for healthy and unhealthy classifications
+    # Track cumulative results for healthy and unhealthy class
     if overall_health == "Healthy":
         session["cumulative_healthy_classifications"] = (
             session.get("cumulative_healthy_classifications", 0) + 1
@@ -306,6 +306,18 @@ def analyse(filename):
     print("Cumulative Yellowish:", session["cumulative_yellowish"])
     print("Total Cumulative Leaves:", total_cumulative_count)
     print("Total Screened:", session["total_screened"])
+    
+    result = {
+        "image_name": f"annotated_{filename}",
+        "healthy_count": healthy_count,
+        "yellowish_count": yellowish_count,
+        "overall_health": overall_health,
+    }
+
+    if "analysis_results" not in session:
+        session["analysis_results"] = []
+    session["analysis_results"].append(result)
+    session.modified = True
 
     return redirect(url_for("show_image", filename=f"annotated_{filename}"), code=302)
 
@@ -387,15 +399,10 @@ def stats():
 
 @app.route("/download_csv")
 def download_csv():
-    data = [
-        {
-            "no": 1,
-            "image_name": session.get("analyzed_image", "N/A"),
-            "healthy_count": session.get("healthy_count", 0),
-            "yellowish_count": session.get("yellowish_count", 0),
-            "overall_health": session.get("overall_health", "Unknown"),
-        }
-    ]
+    data = session.get("analysis_results", [])
+
+    if not data:
+        return "No data available to download.", 400
 
     csv_output = StringIO()
     writer = csv.writer(csv_output)
@@ -411,11 +418,11 @@ def download_csv():
         ]
     )
 
-    # Write the data rows
-    for row in data:
+    # Write all rows
+    for i, row in enumerate(data, start=1):
         writer.writerow(
             [
-                row["no"],
+                i,
                 row["image_name"],
                 row["healthy_count"],
                 row["yellowish_count"],
@@ -431,6 +438,7 @@ def download_csv():
     response.headers["Content-type"] = "text/csv"
 
     return response
+
 
 
 if __name__ == "__main__":
